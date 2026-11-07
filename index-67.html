@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0f4d2a">
+<title>Auctions Food · Cotizaciones y compra directa</title>
+<style>
+:root{--asfalto:#0f4d2a;--grafito:#176a3a;--acero:#dcebd5;--cromo:#bfe0a8;--papel:#f5faf1;--naranja:#4c9a2a;--naranja-os:#3b7d20;--amarillo:#f5b82e;--verde:#2e7d32;--texto:#16281c;--suave:#587061;--r:14px}
+*{box-sizing:border-box;margin:0}
+body{font-family:Inter,system-ui,sans-serif;background:var(--papel);color:var(--texto);display:flex;min-height:100vh}
+h1,h2,h3{font-family:'Barlow Condensed','Arial Narrow',sans-serif}
+button,input,select,textarea{font:inherit;color:inherit}
+.oculto{display:none!important}
+.tarjeta{background:#fff;border:1px solid var(--acero);border-radius:var(--r);padding:20px;margin-bottom:16px}
+.btn{background:var(--naranja);color:#fff;border:0;border-radius:10px;padding:10px 16px;font-weight:600;cursor:pointer}
+.btn:hover{background:var(--naranja-os)}
+.btn.sec{background:var(--asfalto)}.btn.am{background:var(--amarillo);color:#2b2100}.btn.am:hover{background:#e0a41c}.btn.sec:hover{background:var(--grafito)}
+.btn.peq{padding:6px 10px;font-size:13px}
+.fila{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.campo{padding:9px 11px;border:1px solid var(--cromo);border-radius:10px;background:#fff;width:100%}
+.nota{font-size:13px;color:var(--suave)}
+
+/* Login */
+#login,#perfil{position:fixed;inset:0;background:linear-gradient(160deg,var(--asfalto),var(--naranja));;display:grid;place-items:center;z-index:20;padding:20px;overflow:auto}
+#login .tarjeta,#perfil .tarjeta{max-width:400px;width:100%;display:grid;gap:10px;text-align:center}
+#perfil h1,#login h1{font-size:46px}
+
+/* Barra lateral */
+aside{border-right:6px solid var(--amarillo);width:230px;background:var(--asfalto);color:#fff;padding:20px 14px;display:flex;flex-direction:column;gap:6px;flex-shrink:0}
+.logo b{font-family:'Barlow Condensed';font-size:28px;display:block;line-height:1}
+.logo small{color:var(--cromo);font-size:12px}
+nav button{width:100%;background:none;border:0;color:var(--cromo);padding:11px 12px;border-radius:10px;cursor:pointer;text-align:left;font-weight:500}
+nav button:hover{background:var(--grafito);color:#fff}
+nav button[aria-current=page]{background:var(--amarillo);color:#2b2100}
+.pie{margin-top:auto;padding:12px;background:var(--grafito);border-radius:10px;font-size:12px;line-height:1.4;color:var(--cromo)}
+
+/* Contenido */
+main{flex:1;overflow:auto;padding:28px 32px 60px}
+.vista{display:none}.vista.on{display:block}
+.cab h1{font-size:40px;line-height:1}
+.cab p{color:var(--suave);margin:6px 0 18px}
+
+/* Tablas tipo Excel */
+.hoja{overflow-x:auto;border:1px solid #bfd8b0;border-radius:6px;background:#fff}
+table.xl{border-collapse:collapse;width:100%;font-size:14px;min-width:640px}
+table.xl th{background:#e6f3dc;border:1px solid #bfd8b0;padding:7px 8px;text-align:left;font-weight:600;position:sticky;top:0}
+table.xl td{border:1px solid #d9dfe6;padding:0}
+table.xl td input,table.xl td select{border:0;border-radius:0;padding:7px 8px;width:100%;background:transparent;font-size:14px}
+table.xl td input:focus,table.xl td select:focus{outline:2px solid var(--amarillo);outline-offset:-2px;background:#fff8e1}
+table.xl td.num{text-align:right;padding:7px 8px;white-space:nowrap;font-variant-numeric:tabular-nums}
+table.xl td.idx{background:#f1f8ec;text-align:center;padding:7px 4px;color:var(--suave);width:52px}
+table.xl tr.total td{background:#f1f8ec;font-weight:700}
+.acciones{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+.metricas{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:18px}
+.metrica{background:#fff;border:1px solid var(--acero);border-radius:var(--r);padding:14px;border-top:4px solid var(--naranja)}.metrica:nth-child(even){border-top-color:var(--amarillo)}
+.metrica span{color:var(--suave);font-size:13px}
+.metrica .num{display:block;font-family:'Barlow Condensed';font-size:34px;font-weight:700}
+.etq{display:inline-block;padding:3px 10px;border-radius:99px;font-size:12px;font-weight:600;background:#fff4d6;color:#8a6100}
+.etq.ok{background:#e4f6ec;color:var(--verde)}
+.sol-cab{display:flex;justify-content:space-between;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:10px}
+.sol-cab h3{font-size:24px}
+.contacto{background:#fff8e1;border:1px solid var(--amarillo);border-radius:10px;padding:10px 12px;margin-top:12px}.contacto .det{margin:6px 0 0}
+.chk{display:inline-flex;gap:6px;align-items:center;margin:4px 14px 4px 0;font-size:14px}.chk input{width:auto;margin:0}.tarjeta a{color:var(--naranja-os);font-weight:600}
+.det{font-size:13px;color:var(--suave);display:flex;gap:12px;flex-wrap:wrap;margin-bottom:10px}
+.oferta{display:flex;justify-content:space-between;gap:10px;padding:10px 0;border-top:1px solid var(--acero);flex-wrap:wrap;align-items:center}
+.mejor{border-left:4px solid var(--amarillo);padding-left:10px}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--asfalto);color:#fff;padding:12px 18px;border-radius:12px;display:none;z-index:50}
+.toast.on{display:block}
+@media(max-width:820px){
+  body{flex-direction:column}
+  aside{width:100%;flex-direction:row;overflow-x:auto;padding:6px}
+  .logo,.pie{display:none}
+  nav{display:flex}
+  nav button{width:auto;white-space:nowrap}
+  main{padding:18px 14px 30px}
+}
+</style>
+</head>
+<body>
+
+<div id="login">
+  <div class="tarjeta">
+    <h1>Auctions Food</h1>
+    <p class="nota">Cotiza y compra directo: abarrotes, frutas, verduras y bebidas.</p>
+    <label class="nota" style="text-align:left">País</label>
+    <select class="campo" id="lPais"></select>
+    <button class="btn" id="bComprador">Entrar como comprador con Google</button>
+    <button class="btn sec" id="bProveedor">Entrar como proveedor con Google</button>
+    <input class="campo" id="aNombre" placeholder="Nombre (solo para crear cuenta)">
+    <input class="campo" id="aCorreo" type="email" placeholder="Correo">
+    <input class="campo" id="aPass" type="password" placeholder="Contraseña (mínimo 6 caracteres)">
+    <select class="campo" id="aRol">
+      <option value="comprador">Cuenta de comprador</option>
+      <option value="proveedor">Cuenta de proveedor</option>
+    </select>
+    <div class="fila"><button class="btn" id="bIngresar">Ingresar</button><button class="btn sec" id="bCrear">Crear cuenta</button></div>
+  </div>
+</div>
+
+<div id="perfil" class="oculto">
+  <div class="tarjeta">
+    <h1 id="pTitulo" style="font-size:34px">Registro</h1>
+    <p class="nota">Completa tus datos una sola vez.</p>
+    <label class="nota" style="text-align:left">País</label><select class="campo" id="pPais"></select>
+    <input class="campo" id="pWa" type="tel" placeholder="WhatsApp con código de país, ej. +503 7000 0000">
+    <div id="pCom" style="display:grid;gap:10px"><input class="campo" id="pNombre" placeholder="Nombre del comprador"></div>
+    <div id="pProv" style="display:grid;gap:10px"><input class="campo" id="pEmpresa" placeholder="Nombre de la empresa"><input class="campo" id="pRep" placeholder="Representante de ventas"></div>
+    <div class="fila"><button class="btn" id="pGuardar">Guardar y entrar</button><button class="btn sec" id="pCancelar">Cancelar</button></div>
+  </div>
+</div>
+
+<aside>
+  <div class="logo"><b>Auctions Food</b><small>Cotizaciones y compra directa</small></div>
+  <nav>
+    <button data-v="solicitar" data-modo="cotizacion" data-rol="comprador">Cotización</button>
+    <button data-v="solicitar" data-modo="directa" data-rol="comprador">Compra directa</button>
+    <button data-v="subastas" data-rol="comprador">Subastas</button>
+    <button data-v="mis" data-rol="comprador">Mis solicitudes</button>
+    <button data-v="disponibles" data-rol="proveedor">Cotizaciones y compras</button>
+    <button data-v="saldo" data-rol="proveedor">Mi saldo</button>
+    <button data-v="ganadores" data-rol="proveedor">Precios ganadores</button>
+    <button data-v="historial">Historial</button>
+    <button data-v="membresia">Membresía</button>
+    <button id="eliminar">Eliminar cuenta</button>
+    <button id="salir">Salir</button>
+  </nav>
+  <div class="pie" id="pie"></div>
+</aside>
+
+<main>
+  <section class="vista" id="solicitar">
+    <div class="cab"><h1 id="sTitulo">Cotización</h1><p>Llena la lista como en una hoja de Excel. Las empresas te responderán con precio unitario.</p></div>
+    <div class="tarjeta">
+      <div class="fila" style="margin-bottom:12px">
+        <select class="campo" id="sTipo" style="max-width:220px"><option>Mercado</option><option>Supermercado</option><option>Tienda de abarrotes</option><option>Restaurante</option><option>Otro</option></select>
+        <select class="campo" id="sModo" style="max-width:220px"><option value="cotizacion">Cotización</option><option value="directa">Compra directa</option></select>
+        <input class="campo" id="sLugar" placeholder="Lugar de entrega" style="max-width:300px">
+      </div>
+      <div class="fila" style="margin-bottom:12px">
+        <select class="campo" id="sPago" style="max-width:320px"><option value="">¿Cómo pagarás?</option><option>Efectivo</option><option>Tarjeta de crédito/débito</option><option>Transferencia bancaria</option><option>Remesa del exterior</option></select>
+        <button class="btn am peq" type="button" id="bGps">📍 Usar mi ubicación GPS</button><span class="nota" id="sGpsTxt">Sin ubicación</span>
+      </div>
+      <div class="hoja"><table class="xl">
+        <thead><tr><th style="width:52px">Item#</th><th>Concepto</th><th style="width:150px">Unidad de medida</th><th style="width:120px">Cantidad</th></tr></thead>
+        <tbody id="sFilas"></tbody>
+      </table></div>
+      <div class="acciones">
+        <button class="btn sec peq" id="bFila">+ Agregar fila</button>
+        <button class="btn" id="bEnviar">Enviar solicitud</button>
+      </div>
+    </div>
+  </section>
+
+  <section class="vista" id="mis">
+    <div class="cab"><h1>Mis solicitudes</h1><p>Compara las ofertas por total, con IVA incluido, y acepta la mejor.</p></div>
+    <div id="misLista"></div>
+  </section>
+
+  <section class="vista" id="disponibles">
+    <div class="cab"><h1>Solicitudes disponibles</h1><p>Pon tu precio unitario en los items que ofreces; deja en blanco los que no. El total y el IVA de tu país se calculan solos.</p></div>
+    <div class="metricas">
+      <div class="metrica"><span>Solicitudes abiertas</span><span class="num" id="mAbiertas">0</span></div>
+      <div class="metrica"><span>Ofertas enviadas</span><span class="num" id="mOfertas">0</span></div>
+    </div>
+    <div id="dispLista"></div>
+  </section>
+
+  <section class="vista" id="subastas">
+    <div class="cab"><h1>Subastas</h1><p>Las empresas compiten: gana el mejor precio total con IVA incluido.</p></div>
+    <div class="metricas">
+      <div class="metrica"><span>Subastas abiertas</span><span class="num" id="mSubA">0</span></div>
+      <div class="metrica"><span>Ofertas recibidas</span><span class="num" id="mSubO">0</span></div>
+      <div class="metrica"><span>Ahorro vs. oferta más alta</span><span class="num" id="mSubAh">$0.00</span></div>
+    </div>
+    <div id="subLista"></div>
+  </section>
+
+  <section class="vista" id="saldo">
+    <div class="cab"><h1>Mi saldo</h1><p>Ventas cerradas y comisión del 5% que se cobra solo cuando el comprador acepta tu oferta.</p></div>
+    <div class="metricas">
+      <div class="metrica"><span>Ventas</span><span class="num" id="mVentas">$0.00</span></div>
+      <div class="metrica"><span>Comisión 5%</span><span class="num" id="mComision">$0.00</span></div>
+      <div class="metrica"><span>Neto para ti</span><span class="num" id="mNeto">$0.00</span></div>
+    </div>
+    <div class="tarjeta" id="saldoLista"><p class="nota">Sin ventas todavía.</p></div>
+  </section>
+
+  <section class="vista" id="ganadores">
+    <div class="cab"><h1>Precios ganadores</h1><p>Mira quién ganó cada producto y a qué precio unitario (sin IVA), y compara con el tuyo para mejorar tus próximas ofertas. No se muestran datos de contacto.</p></div>
+    <div id="gnLista"></div>
+  </section>
+
+  <section class="vista" id="membresia">
+    <div class="cab"><h1>Membresía</h1><p>Participar a nivel nacional es gratis.</p></div>
+    <div class="metricas">
+      <div class="metrica"><span>Nacional</span><span class="num">Gratis</span></div>
+      <div class="metrica"><span>Internacional</span><span class="num">$4.99/mes</span></div>
+    </div>
+    <div class="tarjeta"><p class="nota">Compra con responsabilidad: al aceptar una oferta, la compra queda en firme. El proveedor debe entregar lo pedido con garantía y, si no puede, devolver el dinero. Los datos de contacto se comparten solo después de aceptar una oferta.</p>
+    <div class="acciones"><button class="btn am" onclick="toast('Los pagos de membresía se activarán pronto.')">Activar internacional</button></div></div>
+  </section>
+
+  <section class="vista" id="historial">
+    <div class="cab"><h1>Historial</h1><p>Compras cerradas.</p></div>
+    <div class="tarjeta" id="histLista"><p class="nota">Sin movimientos todavía.</p></div>
+  </section>
+</main>
+
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+/* IVA por país. Tasa general orientativa; verificar con la autoridad tributaria de cada país antes de cobrar. */
+const IVA = {
+  'El Salvador':{t:13,n:'IVA 13%'},'Guatemala':{t:12,n:'IVA 12%'},'Honduras':{t:15,n:'ISV 15%'},
+  'Nicaragua':{t:15,n:'IVA 15%'},'Costa Rica':{t:13,n:'IVA 13%'},'Panamá':{t:7,n:'ITBMS 7%'},
+  'México':{t:16,n:'IVA 16%'},'Cuba':{t:null,n:'Verificar tasa'},'Colombia':{t:19,n:'IVA 19%'},
+  'Venezuela':{t:16,n:'IVA 16%'},'Ecuador':{t:15,n:'IVA 15%'},'Perú':{t:18,n:'IGV 18%'},
+  'Bolivia':{t:13,n:'IVA 13%'},'Chile':{t:19,n:'IVA 19%'},'Argentina':{t:21,n:'IVA 21%'},
+  'Uruguay':{t:22,n:'IVA 22%'},'Paraguay':{t:10,n:'IVA 10%'},'Brasil':{t:null,n:'Verificar (sistema mixto)'},
+  'República Dominicana':{t:18,n:'ITBIS 18%'},'Puerto Rico':{t:11.5,n:'IVU 11.5%'},
+  'Canadá':{t:null,n:'Verificar (IVA/GST/HST)'},'Estados Unidos':{t:0,n:'Sin IVA federal; impuesto de venta estatal'},
+  'Belice':{t:null,n:'Verificar tasa'},'Guyana':{t:null,n:'Verificar tasa'},'Surinam':{t:null,n:'Verificar tasa'},
+  'Haití':{t:null,n:'Verificar tasa'},'Jamaica':{t:null,n:'Verificar tasa'},'Trinidad y Tobago':{t:null,n:'Verificar tasa'},
+  'Barbados':{t:null,n:'Verificar tasa'},'Bahamas':{t:null,n:'Verificar tasa'}
+};
+
+let rol=null, pais='El Salvador', solicitudes=[], historial=[], filasBorrador=[], preciosTmp={}, pendiente=false, contactos=(window.contactos={}), ofTmp={}, gpsC=null, desel={};
+const PAGOS=['Efectivo','Tarjeta de crédito/débito','Transferencia bancaria','Remesa del exterior'];
+function obtenerGps(cb){if(!navigator.geolocation){toast('Tu navegador no tiene GPS.');return}
+  navigator.geolocation.getCurrentPosition(p=>cb({lat:+p.coords.latitude.toFixed(6),lng:+p.coords.longitude.toFixed(6)}),()=>toast('No se pudo obtener la ubicación. Activa el permiso de ubicación.'),{enableHighAccuracy:true,timeout:15000})}
+function mapas(g){return g?`<a href="https://www.google.com/maps?q=${g.lat},${g.lng}" target="_blank" rel="noopener">📍 Google Maps</a> · <a href="https://waze.com/ul?ll=${g.lat},${g.lng}&navigate=yes" target="_blank" rel="noopener">Waze</a>`:''}
+function cubiertos(s){const m=new Map();(s.compras||[]).forEach(c=>c.items.forEach(n=>m.set(n,c.emp)));return m}
+function datosContacto(s){
+  if(!s||!(s.compras||[]).length)return '';
+  const k=contactos[s.id];
+  if(!k||k.loading)return '<p class="nota">Cargando datos de contacto…</p>';
+  const c=k.c||{};
+  const provs=s.compras.filter(x=>rol==='comprador'||x.uid===USER.uid).map(x=>{const p=(k.ps||{})[x.uid]||{};
+    return `<div class="det"><span><b>Proveedor:</b> ${esc(p.empresa||x.emp)}</span><span>Representante: ${esc(p.rep||'—')}</span><span>${p.wa?waLink(p.wa):''}</span><span>${mapas(p.gps)||'Sin ubicación GPS'}</span><span>${x.items.length} productos · ${fmt(x.total)}</span></div>`}).join('');
+  return `<div class="contacto"><b>Datos de contacto</b>
+    <div class="det"><span><b>Comprador:</b> ${esc(c.nombre||'—')}</span><span>${c.wa?waLink(c.wa):''}</span><span>${mapas(c.gps)||'Sin ubicación GPS'}</span></div>${provs}</div>`;
+}
+function waLink(n){return `<a href="https://wa.me/${String(n||'').replace(/\D/g,'')}" target="_blank" rel="noopener">WhatsApp ${esc(n||'')}</a>`}
+function recibirSolicitudes(arr,uid){
+  solicitudes=arr.filter(s=>rol==='comprador'||s.pais===pais||(s.proveedores||[]).includes(uid));
+  historial=[];solicitudes.forEach(s=>(s.compras||[]).forEach(c=>{if(rol==='comprador'||c.uid===uid)historial.push({solicitud:s.id,emp:c.emp,n:c.items.length,total:c.total,comision:c.sub*0.05,pago:s.pago})}));
+  const a=document.activeElement;
+  if(a&&a.closest&&a.closest('#dispLista,#sFilas')){pendiente=true;return}
+  pintarTodo();
+}
+document.addEventListener('focusout',()=>{if(pendiente)setTimeout(()=>{const a=document.activeElement;if(!(a&&a.closest&&a.closest('#dispLista,#sFilas'))){pendiente=false;pintarTodo()}},80)});
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const fmt=n=>'$'+Number(n||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+const UNIDADES=['Unidad','Caja','Saco','Bolsa','Paquete','Pallet','Libra','Kilo','Litro','Galón','Docena','Lata','Botella','Fardo'];
+function toast(m){const t=$('#toast');t.textContent=m;t.classList.add('on');clearTimeout(toast.i);toast.i=setTimeout(()=>t.classList.remove('on'),3000)}
+
+$('#lPais').innerHTML=Object.keys(IVA).map(p=>`<option ${p==='El Salvador'?'selected':''}>${p}</option>`).join('');
+function mostrar(v){
+  document.querySelectorAll('.vista').forEach(s=>s.classList.toggle('on',s.id===v));
+  document.querySelectorAll('nav button[data-v]').forEach(b=>b.setAttribute('aria-current',b.dataset.v===v?'page':'false'));
+}
+document.querySelectorAll('nav button[data-v]').forEach(b=>b.onclick=()=>{
+  if(b.dataset.modo){$('#sModo').value=b.dataset.modo;$('#sTitulo').textContent=b.dataset.modo==='directa'?'Compra directa':'Cotización';
+    document.querySelectorAll('nav button[data-modo]').forEach(x=>x.setAttribute('aria-current',x===b?'page':'false'));
+    document.querySelectorAll('.vista').forEach(v=>v.classList.toggle('on',v.id==='solicitar'));pintarTodo();return}
+  mostrar(b.dataset.v);pintarTodo()});
+function entrar(r,nombre){
+  rol=r; pais=$('#lPais').value;
+  $('#login').classList.add('oculto');
+  document.querySelectorAll('nav button[data-rol]').forEach(b=>b.classList.toggle('oculto',b.dataset.rol!==r));
+  $('#pie').innerHTML = r==='proveedor'
+    ? `<b>${esc(nombre||'Proveedor')} · ${esc(pais)}</b><br>${esc(IVA[pais].n)} se aplica a tus ofertas.<br>Comisión 5% solo cuando el comprador acepta tu oferta.`
+    : `<b>${esc(nombre||'Comprador')} · ${esc(pais)}</b><br>Solo se cobra la comisión del 5% a la empresa cuando aceptas una oferta.`;
+  mostrar(r==='proveedor'?'disponibles':'solicitar');if(r==='comprador')document.querySelector('nav button[data-modo=cotizacion]').setAttribute('aria-current','page');
+  if(r==='comprador'&&!filasBorrador.length)agregarFila();
+  pintarTodo();
+}
+$('#salir').onclick=()=>location.reload();
+
+/* Comprador: hoja de solicitud */
+function agregarFila(){
+  filasBorrador.push({concepto:'',unidad:'Unidad',cantidad:''});
+  pintarBorrador();
+}
+function pintarBorrador(){
+  $('#sFilas').innerHTML=filasBorrador.map((f,i)=>`<tr>
+    <td class="idx">${i+1}</td>
+    <td><input value="${esc(f.concepto)}" placeholder="Ej. Tomate roma" oninput="filasBorrador[${i}].concepto=this.value"></td>
+    <td><select onchange="filasBorrador[${i}].unidad=this.value">${UNIDADES.map(u=>`<option ${u===f.unidad?'selected':''}>${u}</option>`).join('')}</select></td>
+    <td><input type="number" min="1" value="${esc(f.cantidad)}" oninput="filasBorrador[${i}].cantidad=this.value"></td>
+  </tr>`).join('');
+}
+$('#bFila').onclick=agregarFila;
+$('#bGps').onclick=()=>obtenerGps(g=>{gpsC=g;$('#sGpsTxt').innerHTML='Ubicación guardada · '+mapas(g)});
+$('#bEnviar').onclick=()=>{
+  const items=filasBorrador.filter(f=>f.concepto.trim()&&+f.cantidad>0);
+  if(!items.length){toast('Agrega al menos un item con concepto y cantidad.');return}
+  if(!$('#sPago').value){toast('Elige cómo realizarás el pago.');return}
+  crearSolicitud({
+    id:Date.now(), pago:$('#sPago').value, tipo:$('#sTipo').value, modo:$('#sModo').value==='directa'?'Compra directa':'Cotización',
+    lugar:$('#sLugar').value||'—', pais, items:items.map((f,i)=>({item:i+1,concepto:f.concepto,unidad:f.unidad,cantidad:+f.cantidad})),
+    ofertas:[], compras:[], proveedores:[], aceptada:null, cerrada:false
+  }, gpsC);
+  filasBorrador=[];agregarFila();
+  toast('Solicitud enviada.');
+  mostrar('mis');pintarTodo();
+};
+
+/* Proveedor: precios por item */
+function ofertaTotales(s,precios){
+  const sub=s.items.reduce((a,it)=>a+(+precios[it.item]||0)*it.cantidad,0);
+  const iva=IVA[pais]&&IVA[pais].t!=null?IVA[pais].t:0;
+  const ivaMonto=sub*iva/100;
+  return {sub,iva,ivaMonto,total:sub+ivaMonto};
+}
+function pintarDisponibles(){
+  const abiertas=solicitudes.filter(s=>!s.cerrada);
+  $('#mAbiertas').textContent=abiertas.length;
+  $('#mOfertas').textContent=solicitudes.reduce((a,s)=>a+s.ofertas.filter(o=>o.uid===USER.uid).length,0);
+  $('#dispLista').innerHTML=abiertas.length?abiertas.map(s=>{
+    return `<div class="tarjeta"><div class="sol-cab"><h3>Solicitud #${s.id.toString().slice(-5)}</h3><span class="etq">${esc(s.modo)}</span></div>
+      <div class="det"><span>${esc(s.tipo)}</span><span>Entrega: ${esc(s.lugar)}</span><span>Pago: ${esc(s.pago||'—')}</span><span>${esc(IVA[pais]?.n||'')}</span></div>
+      <div class="hoja"><table class="xl"><thead><tr><th>Item#</th><th>Concepto</th><th>Unidad</th><th>Cantidad</th><th>Precio unitario</th><th>Precio total</th></tr></thead>
+      <tbody id="tb${s.id}">${s.items.map(it=>`<tr>
+        <td class="idx">${it.item}</td><td class="num" style="text-align:left">${esc(it.concepto)}</td><td class="num" style="text-align:left">${esc(it.unidad)}</td><td class="num">${it.cantidad}</td>
+        ${cubiertos(s).has(it.item)?'<td class="nota">✔ ya comprado</td>':`<td><input type="number" min="0" step="0.01" placeholder="0.00" oninput="recalc(${s.id})" data-item="${it.item}"></td>`}
+        <td class="num" data-tot="${it.item}">$0.00</td></tr>`).join('')}
+      </tbody>
+      <tfoot id="tf${s.id}"></tfoot></table></div>
+      ${(()=>{const o=ofTmp[s.id]=ofTmp[s.id]||{pagos:[],gps:null,dom:''};return `<p class="nota" style="margin-top:10px">Los precios unitarios de arriba son tu <b>precio en local o tienda</b>.</p>
+      <div class="fila"><span class="nota">Cargo por domicilio:</span><input class="campo" type="number" min="0" step="0.01" placeholder="0.00" id="dom${s.id}" value="${esc(o.dom)}" oninput="ofSet(${s.id})" style="max-width:130px"></div>
+      <p class="nota" style="margin-top:10px"><b>Formas de pago que aceptas:</b></p>
+      <div id="pg${s.id}">${PAGOS.map(x=>`<label class="chk"><input type="checkbox" value="${x}" ${o.pagos.includes(x)?'checked':''} onchange="ofSet(${s.id})">${x}</label>`).join('')}</div>
+      <div class="fila" style="margin-top:8px"><button class="btn am peq" onclick="gpsOferta(${s.id})">📍 Ubicación GPS de mi local</button><span class="nota" id="og${s.id}">${o.gps?'Ubicación guardada · '+mapas(o.gps):'Sin ubicación'}</span></div>`})()}
+      <div class="acciones"><button class="btn" onclick="enviarOferta(${s.id})">Enviar oferta</button></div></div>`;
+  }).join(''):'<p class="nota">No hay solicitudes abiertas.</p>';
+  abiertas.forEach(s=>{const p=preciosTmp[s.id]||{};document.querySelectorAll('#tb'+s.id+' input[data-item]').forEach(i=>{if(p[i.dataset.item])i.value=p[i.dataset.item]})});
+  abiertas.forEach(s=>recalc(s.id));
+}
+function ofSet(id){
+  const o=ofTmp[id]=ofTmp[id]||{pagos:[],gps:null,dom:''};
+  o.dom=$('#dom'+id).value;
+  o.pagos=[...document.querySelectorAll('#pg'+id+' input:checked')].map(i=>i.value);
+  recalc(id);
+}
+function gpsOferta(id){obtenerGps(g=>{(ofTmp[id]=ofTmp[id]||{pagos:[],gps:null,dom:''}).gps=g;$('#og'+id).innerHTML='Ubicación guardada · '+mapas(g)})}
+function recalc(id){
+  const s=solicitudes.find(x=>x.id===id); if(!s)return;
+  const tb=$('#tb'+id); const precios={};
+  tb.querySelectorAll('input[data-item]').forEach(inp=>precios[inp.dataset.item]=inp.value);
+  s.items.forEach(it=>{const c=tb.querySelector(`[data-tot="${it.item}"]`);c.textContent=fmt((+precios[it.item]||0)*it.cantidad)});
+  const t=ofertaTotales(s,precios);
+  $('#tf'+id).innerHTML=`
+    <tr class="total"><td colspan="5" style="text-align:right">Subtotal</td><td class="num">${fmt(t.sub)}</td></tr>
+    <tr class="total"><td colspan="5" style="text-align:right">${esc(IVA[pais]?.n||'IVA')}</td><td class="num">${fmt(t.ivaMonto)}</td></tr>
+    <tr class="total"><td colspan="5" style="text-align:right">TOTAL en local o tienda</td><td class="num">${fmt(t.total)}</td></tr>
+    <tr class="total"><td colspan="5" style="text-align:right">TOTAL a domicilio</td><td class="num">${fmt(t.total+(+(ofTmp[id]||{}).dom||0))}</td></tr>`;
+  preciosTmp[id]=precios;
+}
+function enviarOferta(id){
+  const s=solicitudes.find(x=>x.id===id);
+  const precios=preciosTmp[id]||{};
+  if(s.ofertas.some(o=>o.uid===USER.uid)){toast('Ya enviaste una oferta a esta solicitud.');return}
+  if(!s.items.some(it=>+precios[it.item]>0)){toast('Pon precio al menos en un item. Deja en blanco los que no ofreces.');return}
+  const t=ofertaTotales(s,precios);
+  const of=ofTmp[id]||{pagos:[],gps:null,dom:''}, dom=+of.dom||0;
+  if(!of.pagos.length){toast('Marca al menos una forma de pago que aceptas.');return}
+  ofertar(id,{emp:USER.nombre,uid:USER.uid,pagos:of.pagos,dom,totalDom:+(t.total+dom).toFixed(2),precios,...t},of.gps);
+  toast('Oferta enviada: '+fmt(t.total)+' con IVA incluido.');
+  pintarTodo();
+}
+
+/* Comprador: ofertas por solicitud */
+function totSel(s,o,items){
+  const sub=items.reduce((a,n)=>{const it=s.items.find(x=>x.item===n);return a+(+o.precios[n]||0)*it.cantidad},0);
+  const ivaMonto=sub*(o.iva||0)/100;return{sub,ivaMonto,total:sub+ivaMonto};
+}
+function selSet(id,idx){
+  const s=solicitudes.find(x=>x.id===id),o=s.ofertas[idx],all=[...document.querySelectorAll(`#sel_${id}_${idx} input`)];
+  desel[id+'_'+idx]=all.filter(i=>!i.checked).map(i=>+i.value);
+  $(`#st_${id}_${idx}`).textContent=fmt(totSel(s,o,all.filter(i=>i.checked).map(i=>+i.value)).total);
+}
+function pintarMis(){
+  $('#misLista').innerHTML=solicitudes.length?solicitudes.map(s=>{
+    const cub=cubiertos(s), n=s.compras.length;
+    const mejor=s.ofertas.length?Math.min(...s.ofertas.map(o=>o.total)):null;
+    const tabla=`<div class="hoja"><table class="xl"><thead><tr><th>Item#</th><th>Concepto</th><th>Unidad</th><th>Cantidad</th><th>Estado</th></tr></thead><tbody>
+      ${s.items.map(it=>`<tr><td class="idx">${it.item}</td><td class="num" style="text-align:left">${esc(it.concepto)}</td><td class="num" style="text-align:left">${esc(it.unidad)}</td><td class="num">${it.cantidad}</td><td class="num" style="text-align:left">${cub.has(it.item)?'✔ '+esc(cub.get(it.item)):'Pendiente'}</td></tr>`).join('')}</tbody></table></div>`;
+    const ofs=s.ofertas.map((o,idx)=>{
+      const compra=s.compras.find(c=>c.idx===idx);
+      const libres=s.items.filter(it=>+o.precios[it.item]>0&&!cub.has(it.item));
+      let ctrl='';
+      if(compra)ctrl=`<p class="nota">✔ Compraste ${compra.items.length} producto(s) a este proveedor · ${fmt(compra.total)}</p>`;
+      else if(!s.cerrada){
+        if(!libres.length)ctrl='<p class="nota">Lo que ofrece ya fue comprado a otros.</p>';
+        else if(n>=3)ctrl='<p class="nota">Ya llegaste al máximo de 3 proveedores.</p>';
+        else{const des=desel[s.id+'_'+idx]||[],t=totSel(s,o,libres.filter(it=>!des.includes(it.item)).map(it=>it.item));
+          ctrl=`<div id="sel_${s.id}_${idx}" style="margin-top:8px"><p class="nota">Desmarca los productos que no quieres comprar a este proveedor:</p>${libres.map(it=>`<label class="chk"><input type="checkbox" value="${it.item}" ${des.includes(it.item)?'':'checked'} onchange="selSet(${s.id},${idx})">#${it.item} ${esc(it.concepto)} · ${it.cantidad} ${esc(it.unidad)} · ${fmt(+o.precios[it.item])} c/u</label>`).join('<br>')}</div>
+          <div class="fila" style="margin-top:8px"><b id="st_${s.id}_${idx}" style="font-size:20px">${fmt(t.total)}</b><span class="nota">con IVA, de lo marcado</span><button class="btn peq" onclick="aceptarSel(${s.id},${idx})">Aceptar lo marcado</button></div>`}
+      }
+      return `<div class="oferta ${o.total===mejor?'mejor':''}" style="display:block"><div class="fila" style="justify-content:space-between"><div><b>${esc(o.emp)}</b><br><small class="nota">Subtotal ${fmt(o.sub)} · ${esc(IVA[s.pais]?.n||'IVA')} ${fmt(o.ivaMonto)}</small><br><small class="nota">En local o tienda: <b>${fmt(o.total)}</b> · A domicilio: <b>${fmt(o.totalDom??o.total)}</b></small><br><small class="nota">Pagos: ${(o.pagos||[]).map(esc).join(', ')||'—'} ${(o.pagos||[]).includes(s.pago)?'✔ acepta '+esc(s.pago||''):'✖ no acepta '+esc(s.pago||'')}</small></div>
+        <div style="font-family:'Barlow Condensed';font-size:26px;font-weight:700">Total oferta ${fmt(o.total)}</div></div>${ctrl}</div>`;
+    }).join('');
+    const cerrar=n&&!s.cerrada?`<div class="acciones"><button class="btn sec peq" onclick="cerrarSol(${s.id})">Cerrar compra con lo ya comprado</button></div>`:'';
+    return `<div class="tarjeta"><div class="sol-cab"><h3>Solicitud #${s.id.toString().slice(-5)}</h3><span class="etq ${n?'ok':''}">${s.cerrada?'Cerrada':n?`Parcial · ${n}/3 proveedores`:esc(s.modo)}</span></div><div class="det"><span>Pago: ${esc(s.pago||'—')}</span><span>Entrega: ${esc(s.lugar)}</span><span>${cub.size}/${s.items.length} productos comprados</span></div>${tabla}<div style="margin-top:12px">${ofs||'<p class="nota">Aún no hay ofertas.</p>'}</div>${cerrar}${datosContacto(s)}</div>`;
+  }).join(''):'<p class="nota">Todavía no has enviado solicitudes.</p>';
+}
+function aceptarSel(id,idx){
+  const s=solicitudes.find(x=>x.id===id),o=s.ofertas[idx],cub=cubiertos(s);
+  const items=[...document.querySelectorAll(`#sel_${id}_${idx} input:checked`)].map(i=>+i.value);
+  if(!items.length){toast('Marca al menos un producto.');return}
+  if(s.compras.length>=3){toast('Máximo 3 proveedores por solicitud.');return}
+  const t=totSel(s,o,items);
+  if(!confirm(`¿Comprar ${items.length} producto(s) a ${o.emp} por ${fmt(t.total)} con IVA incluido? La compra queda en firme.`))return;
+  const compra={uid:o.uid,emp:o.emp,idx,items,sub:+t.sub.toFixed(2),ivaMonto:+t.ivaMonto.toFixed(2),total:+t.total.toFixed(2)};
+  comprar(id,compra,[...s.compras,compra].map(c=>c.emp).join(', '),cub.size+items.length>=s.items.length);
+  toast('Compra registrada. Comisión 5% sobre el subtotal al proveedor.');
+  pintarTodo();
+}
+function cerrarSol(id){
+  if(!confirm('¿Cerrar la compra? Los productos pendientes ya no se podrán comprar en esta solicitud.'))return;
+  cerrarCompra(id);toast('Compra cerrada.');
+}
+function pintarHistorial(){
+  const vistos=new Set();
+  $('#histLista').innerHTML=historial.length?historial.map(h=>`<div class="oferta"><div>Solicitud #${String(h.solicitud).slice(-5)} <small class="nota">· ${h.n} productos${rol==='comprador'?' · '+esc(h.emp):''}</small></div><div>Total ${fmt(h.total)} <small class="nota">· Comisión 5%: ${fmt(h.comision)}</small></div></div>${vistos.has(h.solicitud)?'':(vistos.add(h.solicitud),datosContacto(solicitudes.find(x=>x.id===h.solicitud)))}`).join(''):'<p class="nota">Sin movimientos todavía.</p>';
+}
+function pintarSubastas(){
+  const ab=solicitudes.filter(s=>!s.cerrada);
+  $('#mSubA').textContent=ab.length;
+  $('#mSubO').textContent=solicitudes.reduce((a,s)=>a+s.ofertas.length,0);
+  $('#mSubAh').textContent=fmt(ab.reduce((a,s)=>a+(s.ofertas.length>1?Math.max(...s.ofertas.map(o=>o.total))-Math.min(...s.ofertas.map(o=>o.total)):0),0));
+  $('#subLista').innerHTML=ab.length?ab.map(s=>{const m=s.ofertas.length?Math.min(...s.ofertas.map(o=>o.total)):null;
+    return `<div class="tarjeta"><div class="sol-cab"><h3>Solicitud #${String(s.id).slice(-5)}</h3><span class="etq">${esc(s.modo)}</span></div><div class="det"><span>${s.items.length} items</span><span>${s.ofertas.length} ofertas</span><span>Mejor oferta: ${m==null?'—':fmt(m)}</span></div><button class="btn peq am" onclick="mostrar('mis');pintarTodo()">Ver y comparar</button></div>`}).join(''):'<p class="nota">No hay subastas abiertas.</p>';
+}
+function pintarSaldo(){
+  const v=historial.reduce((a,h)=>a+h.total,0),c=historial.reduce((a,h)=>a+h.comision,0);
+  $('#mVentas').textContent=fmt(v);$('#mComision').textContent=fmt(c);$('#mNeto').textContent=fmt(v-c);
+  $('#saldoLista').innerHTML=historial.length?historial.map(h=>`<div class="oferta"><div>Solicitud #${String(h.solicitud).slice(-5)}</div><div>${fmt(h.total)} <small class="nota">· Comisión: ${fmt(h.comision)}</small></div></div>`).join(''):'<p class="nota">Sin ventas todavía.</p>';
+}
+function pintarGanadores(){
+  if(rol!=='proveedor')return;
+  const lista=solicitudes.filter(s=>(s.compras||[]).length);
+  $('#gnLista').innerHTML=lista.length?lista.map(s=>{
+    const mia=s.ofertas.find(o=>o.uid===USER.uid);
+    const filas=s.items.map(it=>{
+      const c=s.compras.find(x=>x.items.includes(it.item));
+      const base=`<td class="idx">${it.item}</td><td class="num" style="text-align:left">${esc(it.concepto)}</td><td class="num" style="text-align:left">${esc(it.unidad)}</td><td class="num">${it.cantidad}</td>`;
+      if(!c)return `<tr>${base}<td class="nota" colspan="3">Sin comprar todavía</td></tr>`;
+      const w=+s.ofertas[c.idx].precios[it.item]||0, m=mia?(+mia.precios[it.item]||0):0, d=m-w;
+      const tu=c.uid===USER.uid?'✔ Ganaste':m>0?(d>0?`${fmt(m)} <small style="color:#b3261e">(+${fmt(d)} más alto)</small>`:`${fmt(m)} <small>(no fue elegido)</small>`):'No ofertaste';
+      return `<tr>${base}<td class="num"><b>${fmt(w)}</b></td><td class="num" style="text-align:left">${esc(c.emp)}</td><td class="num">${tu}</td></tr>`;
+    }).join('');
+    return `<div class="tarjeta"><div class="sol-cab"><h3>Solicitud #${String(s.id).slice(-5)}</h3><span class="etq ok">${s.cerrada?'Cerrada':'Compra parcial'}</span></div>
+      <div class="det"><span>${esc(s.tipo)}</span><span>${esc(s.pais)}</span><span>${s.compras.length} proveedor(es) ganador(es)</span></div>
+      <div class="hoja"><table class="xl"><thead><tr><th>Item#</th><th>Concepto</th><th>Unidad</th><th>Cantidad</th><th>Precio ganador</th><th>Ganó</th><th>Tu precio</th></tr></thead><tbody>${filas}</tbody></table></div></div>`;
+  }).join(''):'<p class="nota">Aún no hay compras cerradas para comparar.</p>';
+}
+function pintarTodo(){
+  pintarGanadores();pintarDisponibles();pintarMis();pintarHistorial();pintarSubastas();pintarSaldo();
+  if(rol==='comprador')pintarBorrador();
+}
+</script>
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-app.js";
+import { getFirestore, collection, doc, getDoc, setDoc, updateDoc, arrayUnion, onSnapshot, query, where, orderBy, limit } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore.js";
+import { getAuth, GoogleAuthProvider, signInWithPopup, createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile, signOut, deleteUser } from "https://www.gstatic.com/firebasejs/10.14.1/firebase-auth.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAbcKytlkzcRK45_vY6aryw1CksSmecZzU",
+  authDomain: "auctions-food.firebaseapp.com",
+  projectId: "auctions-food",
+  storageBucket: "auctions-food.firebasestorage.app",
+  messagingSenderId: "321317252245",
+  appId: "1:321317252245:web:f011d71796054ad5493f9c"
+};
+
+const app = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db = getFirestore(app);
+const provider = new GoogleAuthProvider();
+const el = id => document.getElementById(id);
+
+function avisar(m){
+  const t = el('toast');
+  t.textContent = m;
+  t.classList.add('on');
+  setTimeout(() => t.classList.remove('on'), 4000);
+}
+
+function traducir(code){
+  const errores = {
+    'auth/invalid-credential': 'Correo o contraseña incorrectos.',
+    'auth/email-already-in-use': 'Ese correo ya tiene una cuenta.',
+    'auth/weak-password': 'La contraseña debe tener al menos 6 caracteres.',
+    'auth/invalid-email': 'El correo no es válido.',
+    'auth/popup-closed-by-user': 'Cerraste la ventana de Google antes de terminar.',
+    'auth/popup-blocked': 'El navegador bloqueó la ventana de Google. Permite las ventanas emergentes.'
+  };
+  return errores[code] || 'No se pudo completar. Intenta de nuevo.';
+}
+
+function pedirPerfil(rol, prev, nombre, user){
+  return new Promise(res => {
+    const p = prev || {};
+    el('pPais').innerHTML = el('lPais').innerHTML; el('pPais').value = p.pais || el('lPais').value;
+    el('pWa').value = p.wa || ''; el('pNombre').value = p.nombre || nombre || ''; el('pEmpresa').value = p.empresa || ''; el('pRep').value = p.rep || '';
+    el('pCom').classList.toggle('oculto', rol !== 'comprador'); el('pProv').classList.toggle('oculto', rol !== 'proveedor');
+    el('pTitulo').textContent = rol === 'comprador' ? 'Registro de comprador' : 'Registro de proveedor';
+    el('perfil').classList.remove('oculto');
+    el('pGuardar').onclick = async () => {
+      const d = { pais: el('pPais').value, wa: el('pWa').value.replace(/[^\d+]/g, ''), rol };
+      if(d.wa.replace(/\D/g, '').length < 8){ avisar('Escribe un WhatsApp válido, con código de país.'); return; }
+      if(rol === 'comprador'){ d.nombre = el('pNombre').value.trim(); if(!d.nombre){ avisar('Escribe el nombre del comprador.'); return; } }
+      else { d.empresa = el('pEmpresa').value.trim(); d.rep = el('pRep').value.trim(); if(!d.empresa || !d.rep){ avisar('Escribe la empresa y el representante de ventas.'); return; } }
+      try{ await setDoc(doc(db, 'usuarios', user.uid), { ...p, ...d }); }catch(e){ avisar('No se pudo guardar el registro: ' + (e.code || 'error')); return; }
+      el('perfil').classList.add('oculto'); res({ ...p, ...d });
+    };
+    el('pCancelar').onclick = () => { el('perfil').classList.add('oculto'); res(null); };
+  });
+}
+async function iniciar(rol, user, nombre){
+  let perfil = null;
+  try{ const d = await getDoc(doc(db, 'usuarios', user.uid)); perfil = d.exists() ? d.data() : null; }catch(e){}
+  const ok = p => p && p.pais && p.wa && (rol === 'comprador' ? p.nombre : (p.empresa && p.rep));
+  if(!ok(perfil)){ perfil = await pedirPerfil(rol, perfil, nombre, user); if(!perfil) return; }
+  el('lPais').value = perfil.pais;
+  nombre = rol === 'comprador' ? perfil.nombre : perfil.empresa;
+  window.USER = { uid: user.uid, nombre, perfil };
+  entrar(rol, nombre);
+  const col = collection(db, 'solicitudes');
+  const q = rol === 'comprador' ? query(col, where('uid', '==', user.uid)) : query(col, orderBy('creada', 'desc'), limit(100));
+  onSnapshot(q, { includeMetadataChanges: true }, snap => {
+    const arr = snap.docs.map(d => ({ ofertas: [], compras: [], proveedores: [], aceptada: null, cerrada: false, ...d.data(), id: Number(d.id), pend: d.metadata.hasPendingWrites })).sort((a, b) => b.id - a.id);
+    recibirSolicitudes(arr, user.uid);
+    traerContactos(arr, user.uid);
+  }, e => avisar(e.code === 'permission-denied' ? 'Sin permiso en Firestore: revisa las reglas.' : 'No se pudieron cargar las solicitudes.'));
+}
+const fallo = e => avisar('No se pudo guardar: ' + (e.code || 'error'));
+const priv = (id, n) => doc(db, 'solicitudes', String(id), 'privado', n);
+window.crearSolicitud = async (s, gps) => {
+  try{
+    await setDoc(doc(db, 'solicitudes', String(s.id)), { ...s, uid: auth.currentUser.uid, creada: s.id });
+    await setDoc(priv(s.id, 'comprador'), { uid: auth.currentUser.uid, nombre: USER.perfil.nombre || '', wa: USER.perfil.wa, gps: gps || null });
+  }catch(e){ fallo(e); }
+};
+window.ofertar = async (id, o, gps) => {
+  try{
+    await setDoc(priv(id, 'prov_' + USER.uid), { uid: USER.uid, empresa: USER.perfil.empresa || '', rep: USER.perfil.rep || '', wa: USER.perfil.wa, gps: gps || null });
+    await updateDoc(doc(db, 'solicitudes', String(id)), { ofertas: arrayUnion(o) });
+  }catch(e){ fallo(e); }
+};
+window.comprar = (id, compra, nombres, cerrada) => updateDoc(doc(db, 'solicitudes', String(id)), { compras: arrayUnion(compra), proveedores: arrayUnion(compra.uid), aceptada: nombres, cerrada }).catch(fallo);
+window.cerrarCompra = id => updateDoc(doc(db, 'solicitudes', String(id)), { cerrada: true }).catch(fallo);
+function traerContactos(arr, uid){
+  arr.filter(s => s.compras.length && !s.pend && (s.uid === uid || s.proveedores.includes(uid))).forEach(async s => {
+    const need = s.uid === uid ? s.proveedores : [uid], key = need.join(',');
+    if(contactos[s.id] && contactos[s.id].key === key) return;
+    contactos[s.id] = { key, loading: true };
+    try{
+      const [c, ...ps] = await Promise.all([getDoc(priv(s.id, 'comprador')), ...need.map(u => getDoc(priv(s.id, 'prov_' + u)))]);
+      contactos[s.id] = { key, c: c.data() || {}, ps: Object.fromEntries(need.map((u, i) => [u, ps[i].data() || {}])) };
+      pintarTodo();
+    }catch(e){ delete contactos[s.id]; }
+  });
+}
+
+async function loginGoogle(rol){
+  try{
+    const r = await signInWithPopup(auth, provider);
+    iniciar(rol, r.user, r.user.displayName || r.user.email);
+  }catch(e){ avisar(traducir(e.code)); }
+}
+
+el('bComprador').onclick = () => loginGoogle('comprador');
+el('bProveedor').onclick = () => loginGoogle('proveedor');
+
+el('bIngresar').onclick = async () => {
+  const correo = el('aCorreo').value.trim(), pass = el('aPass').value;
+  if(!correo || pass.length < 6){ avisar('Escribe correo y contraseña de al menos 6 caracteres.'); return; }
+  try{
+    const r = await signInWithEmailAndPassword(auth, correo, pass);
+    iniciar(el('aRol').value, r.user, r.user.displayName || correo);
+  }catch(e){ avisar(traducir(e.code)); }
+};
+
+el('bCrear').onclick = async () => {
+  const nombre = el('aNombre').value.trim(), correo = el('aCorreo').value.trim(), pass = el('aPass').value;
+  if(!nombre){ avisar('Escribe tu nombre para crear la cuenta.'); return; }
+  if(!correo || pass.length < 6){ avisar('Escribe correo y contraseña de al menos 6 caracteres.'); return; }
+  try{
+    const r = await createUserWithEmailAndPassword(auth, correo, pass);
+    await updateProfile(r.user, { displayName: nombre });
+    iniciar(el('aRol').value, r.user, nombre);
+  }catch(e){ avisar(traducir(e.code)); }
+};
+
+el('eliminar').onclick = async () => {
+  if(!confirm('¿Eliminar tu cuenta para siempre? No se puede deshacer.')) return;
+  try{ await deleteUser(auth.currentUser); location.reload(); }
+  catch(e){ avisar(e.code==='auth/requires-recent-login' ? 'Por seguridad, sal, vuelve a entrar y repite.' : 'No se pudo eliminar la cuenta.'); }
+};
+el('salir').onclick = async () => { await signOut(auth); location.reload(); };
+</script>
+</body>
+</html>
